@@ -1,0 +1,8 @@
+
+> guardfi-web@0.1.0 start
+> next start -p 3100
+
+[1m[38;2;173;127;168m▲ Next.js 16.2.10[39m[22m
+- Local:         http://localhost:3100
+- Network:       http://100.64.17.15:3100
+[32m[1m✓[22m[39m Ready in 913ms

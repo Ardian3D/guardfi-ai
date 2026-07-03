@@ -1,0 +1,334 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-slate-200 antialiased;
+    font-family: var(--font-sans);
+  }
+  ::selection {
+    @apply bg-brand-500/40 text-white;
+  }
+}
+
+@layer components {
+  /* Page background: dark base + subtle grid + corner glows */
+  .app-backdrop {
+    position: relative;
+    min-height: 100vh;
+    background-color: #05060d;
+  }
+  .app-backdrop::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: var(--tw-grid, none);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .grid-overlay {
+    background-image: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0.04) 1px,
+        transparent 1px
+      ),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 44px 44px;
+    -webkit-mask-image: radial-gradient(
+      ellipse at 50% 0%,
+      black 40%,
+      transparent 80%
+    );
+    mask-image: radial-gradient(ellipse at 50% 0%, black 40%, transparent 80%);
+  }
+
+  /* Black base + thin white grid lines — used on all non-landing pages. */
+  .grid-lines-dark {
+    background-color: #000000;
+    background-image: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0.06) 1px,
+        transparent 1px
+      ),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .glow-blob {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(120px);
+    opacity: 0.35;
+    pointer-events: none;
+  }
+
+  .text-gradient {
+    @apply bg-text-gradient bg-clip-text text-transparent;
+  }
+
+  .brand-gradient-text {
+    background: linear-gradient(110deg, #9fb4ff 0%, #7b85ff 45%, #38bdf8 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Cohesive layered landing background (single source of depth). */
+  .landing-bg {
+    background-color: #04050c;
+    background-image:
+      radial-gradient(1150px 640px at 50% -10%, rgba(91, 94, 245, 0.22), transparent 60%),
+      radial-gradient(820px 520px at 86% 8%, rgba(56, 189, 248, 0.10), transparent 58%),
+      radial-gradient(760px 560px at 6% 34%, rgba(99, 102, 241, 0.10), transparent 60%);
+  }
+
+  /* Single, evenly-tiled grid with a soft centered vignette (no harsh edges). */
+  .landing-grid {
+    background-image:
+      linear-gradient(to right, rgba(255, 255, 255, 0.032) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.032) 1px, transparent 1px);
+    background-size: 58px 58px;
+    -webkit-mask-image: radial-gradient(
+      ellipse 78% 62% at 50% 32%,
+      black 55%,
+      transparent 100%
+    );
+    mask-image: radial-gradient(ellipse 78% 62% at 50% 32%, black 55%, transparent 100%);
+  }
+
+  .card-surface {
+    @apply rounded-2xl border border-border bg-surface/70 backdrop-blur-sm;
+  }
+
+  /* Animated multi-stop gradient headline */
+  .animated-gradient-text {
+    background: linear-gradient(
+      120deg,
+      #ffffff 0%,
+      #9fb4ff 22%,
+      #7b85ff 44%,
+      #38bdf8 64%,
+      #9fb4ff 84%,
+      #ffffff 100%
+    );
+    background-size: 250% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: gradient-pan 6s linear infinite;
+  }
+
+  /* Gradient border wrapper */
+  .gradient-border {
+    position: relative;
+    border-radius: 1rem;
+  }
+  .gradient-border::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      rgba(123, 133, 255, 0.6),
+      rgba(147, 51, 234, 0.3),
+      transparent 60%
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* Small pill with pulsing dot */
+  .pulse-dot {
+    position: relative;
+  }
+  .pulse-dot::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 9999px;
+    background: currentColor;
+    opacity: 0.5;
+    animation: ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.06) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2.5s linear infinite;
+  }
+}
+
+@keyframes gradient-pan {
+  to {
+    background-position: 250% center;
+  }
+}
+
+@keyframes ping {
+  75%,
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes scan-down {
+  0% {
+    top: 0%;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
+
+/* ---- Landing: Risk Orbit animations ---- */
+@keyframes gf-orbit-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes gf-orbit-spin-rev {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+@keyframes gf-orbit-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.03);
+  }
+}
+
+.gf-spin-slow {
+  animation: gf-orbit-spin 46s linear infinite;
+}
+.gf-spin-med {
+  animation: gf-orbit-spin 32s linear infinite;
+}
+.gf-spin-rev {
+  animation: gf-orbit-spin-rev 38s linear infinite;
+}
+.gf-orbit-sweep {
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(123, 133, 255, 0.30) 38deg,
+    rgba(56, 189, 248, 0.16) 78deg,
+    transparent 120deg
+  );
+  animation: gf-orbit-spin 8s linear infinite;
+}
+.gf-pulse-ring {
+  animation: gf-orbit-pulse 4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gf-spin-slow,
+  .gf-spin-med,
+  .gf-spin-rev,
+  .gf-orbit-sweep,
+  .gf-pulse-ring,
+  .shimmer,
+  .animated-gradient-text {
+    animation: none !important;
+  }
+}
+
+/* ---- Landing light theme (scoped to "/") ---- */
+.dotted-bg {
+  background-color: #f4f5f7;
+  background-image: radial-gradient(rgba(15, 23, 42, 0.07) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* Soft white card with diffused shadow (reference SaaS look). */
+.card-soft {
+  background-color: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04),
+    0 12px 32px -12px rgba(15, 23, 42, 0.12);
+}
+
+/* Claymorphism-style icon tile. */
+.clay-tile {
+  background-color: #ffffff;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08),
+    0 16px 30px -12px rgba(15, 23, 42, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* Section label pill. */
+.pill-label {
+  background-color: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gf-float-a,
+  .gf-float-b,
+  .gf-float-c {
+    animation: none !important;
+  }
+}
+
+@keyframes gf-float-y {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+.gf-float-a {
+  animation: gf-float-y 6s ease-in-out infinite;
+}
+.gf-float-b {
+  animation: gf-float-y 7.5s ease-in-out infinite;
+}
+.gf-float-c {
+  animation: gf-float-y 5.2s ease-in-out infinite;
+}
