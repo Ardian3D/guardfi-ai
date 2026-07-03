@@ -30,6 +30,11 @@ export const metadata: Metadata = {
   title: "GuardFi AI — AI-Powered DeFi Risk Guardian on HashKey Chain",
   description:
     "AI-powered risk intelligence for safer DeFi on HashKey Chain. Scan tokens and contracts, generate AI risk reports, and anchor verifiable proofs on-chain.",
+  icons: {
+    icon: "/guardfi-logo.png",
+    shortcut: "/guardfi-logo.png",
+    apple: "/guardfi-logo.png",
+  },
 };
 
 export default function RootLayout({

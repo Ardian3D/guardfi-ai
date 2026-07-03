@@ -35,7 +35,34 @@ export interface AiReportRequest {
   scanResult: ScanResult;
 }
 
+/**
+ * Specific reason the deterministic fallback was used instead of DeepSeek.
+ * Server-side diagnostics only; never contains secrets.
+ */
+export type AiReportFallbackReason =
+  | "missing_api_key"
+  | "deepseek_http_error"
+  | "deepseek_timeout"
+  | "empty_content"
+  | "invalid_json"
+  | "parser_validation_failed"
+  | "forbidden_claim_sanitized"
+  | "unknown_error";
+
+/**
+ * Safe generation diagnostics. Contains no secrets (no API key, no headers,
+ * no error stacks). Exposed to the client only in non-production.
+ */
+export interface AiReportGenerationDebug {
+  source: "deepseek" | "fallback";
+  fallbackReason?: AiReportFallbackReason;
+  deepseekStatus?: number;
+  model?: string;
+}
+
 export interface AiReportResponse {
   aiReport: AiReport;
   source: "deepseek" | "fallback";
+  /** Present only in non-production responses (see the API route). */
+  debug?: AiReportGenerationDebug;
 }

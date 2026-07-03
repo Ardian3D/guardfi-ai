@@ -12,6 +12,20 @@ export function hasApiKey(): boolean {
   return !!process.env.DEEPSEEK_API_KEY?.trim();
 }
 
+/** Public, secret-free base URL (for diagnostics). */
+export function getBaseUrl(): string {
+  return BASE_URL;
+}
+
+/**
+ * Safe server-side debug logger for the AI report flow.
+ * NEVER pass the API key or any secret here. Values are logged verbatim.
+ */
+export function aiDebugLog(event: string, fields: Record<string, unknown> = {}): void {
+  // Single-line, structured, secret-free. Visible in the server console.
+  console.info(`[ai-report] ${event}`, fields);
+}
+
 export type DeepSeekErrorCode =
   | "MISSING_KEY"
   | "TIMEOUT"
@@ -30,13 +44,30 @@ export class DeepSeekError extends Error {
   }
 }
 
+export interface DeepSeekResult {
+  content: string;
+  status: number;
+  finishReason?: string;
+}
+
 /**
  * Server-side only. Calls DeepSeek chat/completions and returns the raw JSON
- * string content. Never logs the API key. Throws DeepSeekError on failure so
- * the caller can fall back deterministically.
+ * string content plus safe metadata (HTTP status, finish_reason).
+ * Never logs the API key. Throws DeepSeekError on failure so the caller can
+ * fall back deterministically.
  */
-export async function callDeepSeek(messages: ChatMessage[]): Promise<string> {
+export async function callDeepSeek(messages: ChatMessage[]): Promise<DeepSeekResult> {
   const apiKey = process.env.DEEPSEEK_API_KEY?.trim();
+  const model = getModel();
+
+  // Never logs the key itself — only whether one is present.
+  aiDebugLog("deepseek.request", {
+    hasDeepSeekApiKey: !!apiKey,
+    model,
+    baseUrl: BASE_URL,
+    requestSent: !!apiKey,
+  });
+
   if (!apiKey) {
     throw new DeepSeekError("MISSING_KEY", "DEEPSEEK_API_KEY is not configured.");
   }
@@ -52,15 +83,18 @@ export async function callDeepSeek(messages: ChatMessage[]): Promise<string> {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: getModel(),
+        model,
         messages,
         response_format: { type: "json_object" },
+        thinking: { type: "disabled" },
         temperature: 0.2,
         max_tokens: 1600,
         stream: false,
       }),
       signal: controller.signal,
     });
+
+    aiDebugLog("deepseek.response", { httpStatus: res.status, ok: res.ok });
 
     if (res.status === 429) {
       throw new DeepSeekError("RATE_LIMITED", "DeepSeek rate limit reached.", 429);
@@ -74,18 +108,28 @@ export async function callDeepSeek(messages: ChatMessage[]): Promise<string> {
     }
 
     const data = (await res.json()) as {
-      choices?: { message?: { content?: string } }[];
+      choices?: { message?: { content?: string }; finish_reason?: string }[];
     };
-    const content = data?.choices?.[0]?.message?.content;
+    const choice = data?.choices?.[0];
+    const content = choice?.message?.content;
+    const finishReason = choice?.finish_reason;
+
+    aiDebugLog("deepseek.content", {
+      finishReason: finishReason ?? null,
+      hasContent: !!content && typeof content === "string",
+      contentLength: typeof content === "string" ? content.length : 0,
+    });
+
     if (!content || typeof content !== "string") {
-      throw new DeepSeekError("NO_CONTENT", "DeepSeek returned no content.");
+      throw new DeepSeekError("NO_CONTENT", "DeepSeek returned no content.", res.status);
     }
-    return content;
+    return { content, status: res.status, finishReason };
   } catch (error) {
     if (error instanceof DeepSeekError) throw error;
     if (error instanceof Error && error.name === "AbortError") {
       throw new DeepSeekError("TIMEOUT", "DeepSeek request timed out.");
     }
+    // Do not surface raw error details (may contain sensitive request info).
     throw new DeepSeekError(
       "HTTP_ERROR",
       error instanceof Error ? error.message : "DeepSeek request failed."

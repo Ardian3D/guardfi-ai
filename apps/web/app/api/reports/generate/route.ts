@@ -47,6 +47,10 @@ export async function POST(request: Request) {
 
   try {
     const result = await generateAiReport(scanResult);
+    // Never expose diagnostics in production; keep them for local debugging.
+    if (process.env.NODE_ENV === "production") {
+      delete result.debug;
+    }
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
     // generateAiReport shouldn't throw, but guard anyway (do not leak details).
